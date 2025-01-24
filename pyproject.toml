@@ -1,0 +1,9 @@
+[project]
+name = "qa-automation-workshop"
+version = "0.1.0"
+description = "playwright tests 101"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pytest-playwright>=0.6.2",
+]
