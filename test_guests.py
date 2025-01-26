@@ -1,31 +1,38 @@
 
 import os
+import requests
+from pages.loginpage import LoginPage
+from pages.homepage import HomePage
+from pages.guestlistpage import GuestListPage
+from pages.pageutils import get_session_cookie
 from playwright.sync_api import Page, expect
 
 os.environ["automation-workshop-user"] = "ivelinhr@gmail.com"
 os.environ["automation-workshop-password"] = "temppa$$"
-    
+
 
 def test_create_guest(page: Page):
+    login_page = LoginPage(page)
+    login_page.goto()
 
-    page.goto("https://automation-workshop.hacksoft.io/admin/")
+    login_page.login_field().fill(os.environ["automation-workshop-user"])
+    login_page.password_field().fill(os.environ["automation-workshop-password"])
 
-    username_field = page.locator("#id_username")
-    username_field.fill(os.environ["automation-workshop-user"])
+    login_page.submit_button().click()
 
-    password_field = page.locator("#id_password")
-    password_field.fill(os.environ["automation-workshop-password"])
+    result = requests.post("https://automation-workshop.hacksoft.io/api/nuke/", cookies=get_session_cookie(page))
+    print(result.text)
+    
+    home_page = HomePage(page)
+    expect(page).to_have_url(home_page.url)
+    
 
-    submit_button = page.locator("#login-form > div.submit-row > input[type=submit]")
-    submit_button.click()
+    home_page.guest_link_button().click()
 
-    expect(page).to_have_url("https://automation-workshop.hacksoft.io/admin/")
+    guest_list_page = GuestListPage(page)
+    expect(page).to_have_url(guest_list_page.url)
 
-    guest_link = page.locator("#reservations-guest > a")
-    guest_link.click()
-
-    add_guest_button = page.locator("#nav-sidebar > div > table > tbody > tr.model-guest.current-model > td > a")
-    add_guest_button.click()
+    guest_list_page.add_guest_button().click()
 
     first_name_field = page.locator("#id_first_name")
     first_name_field.fill("Ivelin")
